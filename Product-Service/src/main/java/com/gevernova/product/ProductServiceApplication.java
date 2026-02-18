@@ -1,4 +1,4 @@
-package com.gevernova.Product_Service;
+package com.gevernova.product;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
