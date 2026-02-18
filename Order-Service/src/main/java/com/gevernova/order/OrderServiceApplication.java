@@ -1,9 +1,11 @@
-package com.gevernova.Order_Service;
+package com.gevernova.order;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
+@EnableDiscoveryClient
+@EnableFeignClient
 public class OrderServiceApplication {
 
 	public static void main(String[] args) {
