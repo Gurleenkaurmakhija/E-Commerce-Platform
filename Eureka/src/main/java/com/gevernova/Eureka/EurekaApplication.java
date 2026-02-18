@@ -1,13 +1,13 @@
-//package com.gevernova.Eureka;
-//
-//import org.springframework.boot.SpringApplication;
-//import org.springframework.boot.autoconfigure.SpringBootApplication;
-//
-//// Enables this application as Eureka Server
-//@EnableEurekaServer
-//@SpringBootApplication
-//public class EurekaApplication {
-//    public static void main(String[] args) {
-//        SpringApplication.run(EurekaApplication.class, args);
-//    }
-//}
+package com.gevernova.Eureka;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+// Enables this application as Eureka Server
+@EnableEurekaServer
+@SpringBootApplication
+public class EurekaApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(EurekaApplication.class, args);
+    }
+}
