@@ -17,14 +17,16 @@ public class OrderController {
         this.service = service;
     }
 
-    /**
-     * Endpoint to place an order
-     */
+    // Create a new order for the given product and quantity
     @PostMapping
-    public Order placeOrder(@RequestParam Long productId,
-                            @RequestParam int quantity,
-                            @RequestParam double totalAmount) {
+    public Order place(@RequestParam Long productId,
+                       @RequestParam int quantity) {
+        return service.place(productId, quantity);
+    }
 
-        return service.placeOrder(productId, quantity, totalAmount);
+    // Retrieve order details by order ID
+    @GetMapping("/{id}")
+    public Order get(@PathVariable Long id) {
+        return service.getById(id);
     }
 }
