@@ -1,43 +1,63 @@
 package com.gevernova.order.service;
 
-import com.gevernova.order.entity.Order;
-import com.gevernova.order.external.ProductClient;
-import com.gevernova.order.repository.OrderRepository;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import org.gevernova.orderservice.dto.ProductResponse;
+import org.gevernova.orderservice.entity.Order;
+import org.gevernova.orderservice.exception.OrderNotFoundException;
+import org.gevernova.orderservice.external.service.ProductClient;
+import org.gevernova.orderservice.repository.OrderRepository;
 import org.springframework.stereotype.Service;
 
-/**
- * Business logic for placing orders
- */
 @Service
 public class OrderServiceImpl implements OrderService {
 
-    private final ProductClient productClient;
-    private final OrderRepository orderRepository;
+    private final OrderRepository repository;   // Repository to manage orders
+    private final ProductClient productClient;  // Feign client to communicate with Product Service
 
-    public OrderServiceImpl(ProductClient productClient,
-                            OrderRepository orderRepository) {
+    // Explicit constructor for dependency injection (replaces @RequiredArgsConstructor)
+    public OrderServiceImpl(OrderRepository repository, ProductClient productClient) {
+        this.repository = repository;
         this.productClient = productClient;
-        this.orderRepository = orderRepository;
     }
 
     /**
-     * Places order:
-     * 1. Calls Product Service via Feign to reduce stock
-     * 2. Saves order in database
+     * Place an order by fetching product details and reducing stock
+     * Uses CircuitBreaker to handle Product Service failures
      */
     @Override
-    public Order placeOrder(Long productId, int quantity, double totalAmount) {
+    @CircuitBreaker(name = "productService", fallbackMethod = "fallback")
+    public Order place(Long productId, int quantity) {
 
-        // Call Product Service
-        productClient.reduceQuantity(productId, quantity);
+        // Fetch product details from Product Service
+        ProductResponse product = productClient.getProduct(productId);
 
-        // Create Order
+        // Reduce stock in Product Service
+        productClient.reduce(productId, quantity);
+
+        // Calculate total order amount
+        double total = product.getPrice() * quantity;
+
+        // Create and save order
         Order order = new Order();
         order.setProductId(productId);
         order.setQuantity(quantity);
-        order.setTotalAmount(totalAmount);
+        order.setTotalAmount(total);
 
-        // Save Order
-        return orderRepository.save(order);
+        return repository.save(order);
+    }
+
+    // Fallback method executed when ProductService is unavailable
+    public Order fallback(Long productId, int quantity, Exception ex) {
+        return new Order(null, productId, quantity, 0);
+    }
+
+    /**
+     * Retrieve an order by its ID
+     * Throws OrderNotFoundException if not found
+     */
+    @Override
+    public Order getById(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new OrderNotFoundException(id));
     }
 }
