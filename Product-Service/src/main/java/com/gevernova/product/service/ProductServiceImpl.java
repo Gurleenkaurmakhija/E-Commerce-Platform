@@ -1,13 +1,14 @@
 package com.gevernova.product.service;
 
 import com.gevernova.product.entity.Product;
+import com.gevernova.product.exception.ProductNotFoundException;
+import com.gevernova.product.exception.InsufficientStockException;
 import com.gevernova.product.repository.ProductRepository;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 
 /**
- * Business logic for Product Service
+ * Product service implementation
  */
 @Service
 public class ProductServiceImpl implements ProductService {
@@ -18,54 +19,48 @@ public class ProductServiceImpl implements ProductService {
         this.repository = repository;
     }
 
-    // Create product
+    // Add a new product
     @Override
     public Product addProduct(Product product) {
         return repository.save(product);
     }
 
-    // Get all products
+    // Retrieve all products
     @Override
     public List<Product> getAllProducts() {
         return repository.findAll();
     }
 
-    // Get product by ID
+    // Retrieve a product by its ID
     @Override
     public Product getProductById(Long id) {
         return repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product Not Found"));
+                .orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + id));
     }
 
-    // Update product by ID
+    // Update product details by ID
     @Override
-    public Product updateProduct(Long id, Product updatedProduct) {
+    public Product updateProduct(Long id, Product product) {
         Product existing = getProductById(id);
-
-        existing.setName(updatedProduct.getName());
-        existing.setPrice(updatedProduct.getPrice());
-        existing.setQuantity(updatedProduct.getQuantity());
-
+        existing.setName(product.getName());
+        existing.setPrice(product.getPrice());
+        existing.setQuantity(product.getQuantity());
         return repository.save(existing);
     }
 
-    // Delete product by ID
+    // Delete a product by ID
     @Override
     public void deleteProduct(Long id) {
-        Product product = getProductById(id);
-        repository.delete(product);
+        Product existing = getProductById(id);
+        repository.delete(existing);
     }
 
-    // Reduce stock quantity
+    // Reduce quantity of a product (e.g., after purchase)
     @Override
     public void reduceQuantity(Long id, int quantity) {
-
         Product product = getProductById(id);
-
-        if (product.getQuantity() < quantity) {
-            throw new RuntimeException("Insufficient Stock");
-        }
-
+        if (product.getQuantity() < quantity)
+            throw new InsufficientStockException("Insufficient stock available");
         product.setQuantity(product.getQuantity() - quantity);
         repository.save(product);
     }
