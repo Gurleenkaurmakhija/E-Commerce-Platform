@@ -46,6 +46,7 @@
         <module>Eureka</module>
         <module>Order-Service</module>
         <module>Product-Service</module>
+        <module>API-Gateway</module>
     </modules>
 
 	<build>
